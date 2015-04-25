@@ -24,9 +24,12 @@ function Search-IdmByFilter {
     ValueFromPipeline=$false,
     ValueFromPipelineByPropertyName=$True,
       HelpMessage='XPath filter to search with')]
-    [Alias('host')]
-    [ValidateLength(3,30)]
-    [string]$Filter
+    [string]$Filter,
+    [Parameter(Mandatory=$false,
+    ValueFromPipeline=$false,
+    ValueFromPipelineByPropertyName=$True,
+      HelpMessage='Comma-separated list of attributes to return')]
+    [string]$Select
   )
 
   begin {
@@ -35,9 +38,9 @@ function Search-IdmByFilter {
 
   process {
     write-verbose "Beginning process loop"
-    $encodedFilter = [System.Web.HttpUtility]::UrlEncode("$Filter")
-    Write-Verbose "Encoded Filter = $encodedFilter"
-    $url = "$idmApi/api/resources?filter=$encodedFilter"
+    #$encodedFilter = [System.Web.HttpUtility]::UrlEncode("$Filter")
+    #Write-Verbose "Encoded Filter = $encodedFilter"
+    $url = "$idmApi/api/resources?filter=$Filter&select=$Select"
     Write-Verbose "URL = $url"
     Invoke-RestMethod -Uri $url
   }

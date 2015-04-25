@@ -15,4 +15,10 @@ Describe “Search-IdmByFilter" {
         $result = Search-IdmByFilter -Filter /ObjectTypeDescription 
         $result.Count -ge 40 | Should Be $true
     }
+
+    It "T002_It_can_search_and_return_specific_attributes" {
+        $result = Search-IdmByFilter -Filter /ObjectTypeDescription -Select "DisplayName,Name"
+        $result[0].DisplayName | Should Be "Activity Information Configuration"
+        $result[0].Attributes[3].Values[0] | Should Be "ActivityInformationConfiguration"
+    }
 }
