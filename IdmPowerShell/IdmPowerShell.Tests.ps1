@@ -21,4 +21,9 @@ Describe “Search-IdmByFilter" {
         $result[0].DisplayName | Should Be "Activity Information Configuration"
         $result[0].Attributes[3].Values[0] | Should Be "ActivityInformationConfiguration"
     }
+
+    It "T003_It_can_search_and_return_all_attributes_with_Select_STAR" {
+        $result = Search-IdmByFilter -Filter /BindingDescription -Select "*"
+        $result[0].Attributes.Count | Should Be 10
+    }
 }
