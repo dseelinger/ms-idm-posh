@@ -26,4 +26,17 @@ Describe “Search-IdmByFilter" {
         $result = Search-IdmByFilter -Filter /BindingDescription -Select "*"
         $result[0].Attributes.Count | Should Be 10
     }
+
+    It "T004_It_can_Search_and_Sort_the_results_by_multiple_attributes_in_Ascending_or_Descending_order" {
+        $result = Search-IdmByFilter -Filter /BindingDescription -Select "Name,BoundObjectType,BoundAttributeType" -Sort "BoundObjectType:Ascending,BoundAttributeType:Descending"
+        $result[0].Attributes[3].Values[0] | Should Be e1a42ced-6968-457c-b5c8-3f9a573295a6
+        $result[1].Attributes[3].Values[0] | Should Be e1a42ced-6968-457c-b5c8-3f9a573295a6
+        #...
+        $result[18].Attributes[3].Values[0] | Should Be e1a42ced-6968-457c-b5c8-3f9a573295a6
+        $result[19].Attributes[3].Values[0] | Should Be e1a42ced-6968-457c-b5c8-3f9a573295a6
+
+        $result[20].Attributes[3].Values[0] | Should Be c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
+
+
+    }
 }

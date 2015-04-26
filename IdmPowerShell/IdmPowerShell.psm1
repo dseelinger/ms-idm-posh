@@ -21,15 +21,20 @@ function Search-IdmByFilter {
   param
   (
     [Parameter(Mandatory=$True,
-    ValueFromPipeline=$false,
-    ValueFromPipelineByPropertyName=$True,
+      ValueFromPipeline=$false,
+      ValueFromPipelineByPropertyName=$True,
       HelpMessage='XPath filter to search with')]
     [string]$Filter,
     [Parameter(Mandatory=$false,
-    ValueFromPipeline=$false,
-    ValueFromPipelineByPropertyName=$True,
+      ValueFromPipeline=$false,
+      ValueFromPipelineByPropertyName=$True,
       HelpMessage='Comma-separated list of attributes to return')]
-    [string]$Select
+    [string]$Select,
+    [Parameter(Mandatory=$false,
+      ValueFromPipeline=$false,
+      ValueFromPipelineByPropertyName=$True,
+      HelpMessage='Comma separated list of attributes to sort by, must be in the format of  "AttributeName:SortDirection". For example: BoundObjectType:Ascending,BoundAttributeType:Descending - which would be a valid sort order for BindingDescription objects in Identity Manager')]
+    [string]$Sort
   )
 
   begin {
@@ -40,7 +45,7 @@ function Search-IdmByFilter {
     write-verbose "Beginning process loop"
     #$encodedFilter = [System.Web.HttpUtility]::UrlEncode("$Filter")
     #Write-Verbose "Encoded Filter = $encodedFilter"
-    $url = "$idmApi/api/resources?filter=$Filter&select=$Select"
+    $url = "$idmApi/api/resources?filter=$Filter&select=$Select&sort=$Sort"
     Write-Verbose "URL = $url"
     Invoke-RestMethod -Uri $url
   }
