@@ -36,7 +36,13 @@ Describe “Search-IdmByFilter" {
         $result[19].Attributes[3].Values[0] | Should Be e1a42ced-6968-457c-b5c8-3f9a573295a6
 
         $result[20].Attributes[3].Values[0] | Should Be c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
-
-
     }
+
+    It "T005_It_can_get_a_resource_by_its_ObjectID" {
+        $result = Search-IdmByObjectID c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
+        $result.Attributes[0].Values[0] | Should Be c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
+        $result.Attributes[1].Values[0] | Should Be ObjectTypeDescription
+    }
+
+    
 }
