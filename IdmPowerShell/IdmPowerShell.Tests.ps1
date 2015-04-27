@@ -38,11 +38,27 @@ Describe “Search-IdmByFilter" {
         $result[20].Attributes[3].Values[0] | Should Be c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
     }
 
+}
+
+Describe "Search-IdmByObjectID" {
     It "T005_It_can_get_a_resource_by_its_ObjectID" {
         $result = Search-IdmByObjectID c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
         $result.Attributes[0].Values[0] | Should Be c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
         $result.Attributes[1].Values[0] | Should Be ObjectTypeDescription
     }
 
-    
+    It "T006_It_can_get_any_or_all_attributes_for_a_resource_by_its_ObjectID" {
+        $result = Search-IdmByObjectID c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e -Select "*"
+        $result.Attributes.Count | Should Be 6
+        $result.Attributes[0].Values[0] | Should Be c51c9ef3-2de0-4d4e-b30b-c1a18e79c56e
+        $result.Attributes[1].Values[0] | Should Be ObjectTypeDescription
+    }
+}
+
+
+Describe "Get-IdmCount" {
+    It "T007_It_can_return_the_number_of_matching_records_for_a_given_search" {
+        $result = Get-IdmCount "/ConstantSpecifier"
+        $result | Should Be 97
+    }
 }

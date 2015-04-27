@@ -52,6 +52,42 @@ function Search-IdmByFilter {
 }
 
 
+function Get-IdmCount {
+  <#
+  .SYNOPSIS
+  Get Identity Manager Count
+  .DESCRIPTION
+  Get the count of the number of records that match (or would be returned) from a particular search request
+  .EXAMPLE
+  Get-IdmCount /ConstantSpecifier
+  .PARAMETER Filter
+  The XPath Filter with which to search Identity Manager
+  #>
+  [CmdletBinding(SupportsShouldProcess=$True,ConfirmImpact='Low')]
+  param
+  (
+    [Parameter(Mandatory=$True,
+      Position = 0,
+      ValueFromPipeline=$True,
+      ValueFromPipelineByPropertyName=$True,
+      HelpMessage='XPath filter to search with')]
+    [string]$Filter
+  )
+
+  begin {
+    $idmApi = Get-IdmServer
+  }
+
+  process {
+    write-verbose "Beginning process loop"
+    $url = "$idmApi/api/resources?filter=$Filter"
+    Write-Verbose "URL = $url"
+    $result = Invoke-WebRequest -Method Head -Uri $url
+    $result.Headers["x-idm-count"]
+  }
+}
+
+
 function Search-IdmByObjectID {
   <#
   .SYNOPSIS
