@@ -131,3 +131,74 @@ function Search-IdmByObjectID {
     Invoke-RestMethod -Uri $url
   }
 }
+
+function Add-IdmObject {
+  <#
+  .SYNOPSIS
+  Create a new object/resource in Identity Manager
+  .DESCRIPTION
+  Create a new object in identity manager by supplying an appropriate JSON parameter to represent the object. Both examples show equivalent functionality
+  .EXAMPLE
+  Add-IdmObject '{ "ObjectType": "Person", "DisplayName": "_Test User" }'
+  .EXAMPLE
+  Add-IdmObject '{ "Attributes": [ { "Name": "ObjectType", "Values": ["Person"] }, { "Name": "DisplayName", "Values": ["_Test User"] } ] }'
+  .PARAMETER Json
+  The JSON representation of the object to be created in Identity Manager
+  #>
+  [CmdletBinding(SupportsShouldProcess=$True,ConfirmImpact='Low')]
+  param
+  (
+    [Parameter(Mandatory=$True,
+      Position=0,
+      ValueFromPipeline=$True,
+      ValueFromPipelineByPropertyName=$True,
+      HelpMessage='Supply the JSON for the new object')]
+    [string]$Json
+  )
+
+  begin {
+    $idmApi = Get-IdmServer
+  }
+
+  process {
+    write-verbose "Beginning process loop"
+    $url = "$idmApi/api/resources"
+    Write-Verbose "URL = $url"
+    Invoke-RestMethod -Uri $url -Method Post -Body $Json -ContentType "application/json"
+  }
+}
+
+
+function Remove-IdmObject {
+  <#
+  .SYNOPSIS
+  Deletes an existing object/resource from Identity Manager
+  .DESCRIPTION
+  Deletes an existing object from identity manager by supplying the ObjectID of the object to be deleted.
+  .EXAMPLE
+  Remove-IdmObject 9e43f3a1-9efe-41dd-8405-23ea2e421e33
+  .PARAMETER ObjectID
+  The object ID of the object to be deleted.
+  #>
+  [CmdletBinding(SupportsShouldProcess=$True,ConfirmImpact='Low')]
+  param
+  (
+    [Parameter(Mandatory=$True,
+      Position=0,
+      ValueFromPipeline=$True,
+      ValueFromPipelineByPropertyName=$True,
+      HelpMessage='ID of the object to be deleted')]
+    [string]$ObjectID
+  )
+
+  begin {
+    $idmApi = Get-IdmServer
+  }
+
+  process {
+    write-verbose "Beginning process loop"
+    $url = "$idmApi/api/resources/$ObjectID"
+    Write-Verbose "URL = $url"
+    Invoke-RestMethod -Uri $url -Method Delete
+  }
+}

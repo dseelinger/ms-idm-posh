@@ -62,3 +62,26 @@ Describe "Get-IdmCount" {
         $result | Should Be 97
     }
 }
+
+Describe "Add-IdmObject" {
+    It "T008_It_can_create_objects_in_Identity_Manager" {
+        $result = Add-IdmObject -Json '{ "ObjectType": "Person", "DisplayName": "_Test User" }'
+        $objectID = $result.ObjectID
+        $objectID | Should Not Be $null
+        Remove-IdmObject $objectID
+    }
+}
+
+Describe "Remove-IdmObject" {
+    It "T009_It_can_delete_objects_from_Identity_Manager" {
+        $result = Add-IdmObject -Json '{ "ObjectType": "Person", "DisplayName": "_Test User" }'
+        $objectID = $result.ObjectID
+        Remove-IdmObject $objectID
+        
+        try {
+            Search-IdmByObjectID $objectID | Out-Null
+            $false | Should Be $true
+        }
+        Catch{}
+    }
+}
