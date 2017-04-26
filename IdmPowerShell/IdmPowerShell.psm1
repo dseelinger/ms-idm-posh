@@ -1,4 +1,220 @@
-﻿function Get-IdmServer {
+﻿#region new cmdlets
+Function Get-IdmObject
+{
+    <#
+    .SYNOPSIS
+    This function will search the supplied identity server and return the results.
+    .DESCRIPTION
+    This function will search the supplied identity server and return the results.
+    .EXAMPLE
+    Get-IdmObject -Server localhost -Filter /Person -Properties DisplayName,AccountName    
+    .EXAMPLE
+    Get-IdmObject -Server localhost -Filter /Person -Properties DisplayName,AccountName -Credential Get-Credential
+    .EXAMPLE
+    Get-IdmObject -Server localhost -Filter /Person -CountOnly
+    .Example
+    Get-IdmObject -Server localhost -SchemaOnly -ObjectType Person   
+    .PARAMETER Server
+    The idm server name to query. Just one.
+    .PARAMETER Filter
+    The XPATH filter to apply to the search, will search for all by default.
+    .PARAMETER Properties
+    The properties of the Idmobject that you wish to retrieve, will retrieve all by default.
+    .PARAMETER PageSize
+    Retrieves only the first x results specified.
+    .PARAMETER CountOnly
+    Will only retrieve the total count of objects identified in the search criteria. Much faster that retrieving associated properties.
+    .PARAMETER Schema
+    Will retrieve the schema definition for the object types supplied
+    .PARAMETER ObjectType
+    The Object Type of the Schema element to search for
+    .PARAMETER Credential
+    The PSCredential object in the form of <domain>\<username> of a user to impersonate. If not specified your current user credentials will be used.
+    #>
+    [CmdletBinding(DefaultParameterSetName = 'Default')]
+    Param
+    (
+        [Parameter(HelpMessage = 'The name of the Idm server',
+        ParameterSetName = 'Default')]
+        [Parameter(ParameterSetName = 'Count')]
+        [Parameter(ParameterSetName = 'Schema')]
+        [string]$Server = $env:COMPUTERNAME,
+        
+        [Parameter(HelpMessage = 'The XPATH filter to apply to the search',
+        ParameterSetName = 'Default')]
+        [Parameter(ParameterSetName = 'Count')]
+        [string]$Filter = "/*",
+        
+        [Parameter(HelpMessage = 'The properties of the objects to retrieve',
+        ParameterSetName = 'Default')]
+        [string[]]$Properties = "*",
+        
+        [Parameter(HelpMessage = 'The number of results to retrieve',
+        ParameterSetName = 'Default')]
+        [int]$PageSize,
+        
+        [Parameter(HelpMessage = 'Only retrieve the total count of objects that the filter returns',
+        ParameterSetName = 'Count')]
+        [switch]$CountOnly,
+
+        [Parameter(HelpMessage = 'Only retrieve the schema of the specified object type',
+        ParameterSetName = 'Schema')]
+        [switch]$SchemaOnly,
+        
+        [Parameter(HelpMessage = 'The object type schema to retrieve',
+        ParameterSetName = 'Schema')]
+        [string[]]$ObjectType,
+
+        [Parameter(HelpMessage = 'The credential to use to perform the query. Current user credentials will be used if none are specified',
+        ParameterSetName = 'Default')]
+        [Parameter(ParameterSetName = 'Count')]
+        [Parameter(ParameterSetName = 'Schema')]
+        [pscredential]$Credential
+    )
+    Begin
+    {
+        $ConnectionInfo = [IdmNet.IdmConnectionInfo]::new()
+        $ConnectionInfo.Server = $Server
+        if($Credential)
+        {
+            $ConnectionInfo.Domain = $env:USERDOMAIN
+            $ConnectionInfo.Username = $Credential.UserName
+            $ConnectionInfo.Password = $Credential.GetNetworkCredential().Password
+        }
+    
+        $Client = [IdmNet.IdmNetClientFactory]::BuildClient($ConnectionInfo)
+    }
+    Process
+    {    
+        $SearchCriteria = [IdmNet.SoapModels.SearchCriteria]::new()
+        $SearchCriteria.Filter = $Filter
+    
+        if($CountOnly)
+        {
+            $Client.GetCountAsync($Filter).Result
+        }
+        elseif($SchemaOnly)
+        {
+            foreach($Object in $ObjectType)
+            {
+                $Schema = $Client.GetSchemaAsync($Object)
+                $Schema.Result
+            }
+        }
+        else
+        {
+            foreach($Property in $Properties)
+            {
+                $SearchCriteria.Selection += $Property
+            }
+            if($PageSize)
+            {
+                $Client.GetPagedResultsAsync($SearchCriteria,$PageSize).Result.Items | Select-Object -Property $SearchCriteria.Selection
+            }
+            else
+            {
+                $Client.SearchAsync($SearchCriteria).Result | Select-Object -Property $SearchCriteria.Selection
+            }
+        }
+    }
+}
+
+Function Set-IdmObject
+{
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(HelpMessage = 'The name of the Idm server',
+        ParameterSetName = 'Default')]
+        [string]$Server = $env:COMPUTERNAME,
+
+        [Parameter(Position = 0,
+        ValueFromPipeline = $True,
+        HelpMessage = 'The ObjectID of the Object to be modified',
+        ParameterSetName = 'Default')]
+        [guid]$ObjectID,
+
+        [Parameter(HelpMessage = 'The operation to perform on the specified object',
+        ParameterSetName = 'Default')]
+        [ValidateSet('Add','Remove','Put')]
+        [string]$Operation,
+        
+        [Parameter(HelpMessage = 'The attributes and values to create new object with',
+        ParameterSetName = 'Default')]
+        [hashtable]$Attributes,
+
+        [Parameter(HelpMessage = 'The credential to use to perform the operation. Current user credentials will be used if none are specified',
+        ParameterSetName = 'Default')]
+        [pscredential]$Credential
+    )
+
+    Begin
+    {
+        $ConnectionInfo = [IdmNet.IdmConnectionInfo]::new()
+        $ConnectionInfo.Server = $Server
+        $Client = [IdmNet.IdmNetClientFactory]::BuildClient($ConnectionInfo)
+        $IdmObject = [IdmNet.Models.IdmResource]::new()
+    }
+    Process
+    {
+        if($Operation -eq 'Add')
+        {
+            $Client.AddValueAsync(
+        }
+        elseif($Operation -eq 'Remove')
+        {
+
+        }
+        else
+        {
+
+        }
+        foreach($Attribute in $Attributes.Keys)
+        {
+            $IdmObject.SetAttrValue($Attribute, $($Attributes.$Attribute))
+        }
+        $Client.GetNewObjectId($($Client.CreateAsync($IdmObject)).Result)
+    }
+}
+
+Function New-IdmObject
+{
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(HelpMessage = 'The name of the Idm server',
+        ParameterSetName = 'Default')]
+        [string]$Server = $env:COMPUTERNAME,
+        
+        [Parameter(HelpMessage = 'The attributes and values to create new object with',
+        ParameterSetName = 'Default')]
+        [hashtable]$Attributes,
+
+        [Parameter(HelpMessage = 'The credential to use to perform the operation. Current user credentials will be used if none are specified',
+        ParameterSetName = 'Default')]
+        [pscredential]$Credential
+    )
+
+    Begin
+    {
+        $ConnectionInfo = [IdmNet.IdmConnectionInfo]::new()
+        $ConnectionInfo.Server = $Server
+        $Client = [IdmNet.IdmNetClientFactory]::BuildClient($ConnectionInfo)
+        $IdmObject = [IdmNet.Models.IdmResource]::new()
+    }
+    Process
+    {
+        foreach($Attribute in $Attributes.Keys)
+        {
+            $IdmObject.SetAttrValue($Attribute, $($Attributes.$Attribute))
+        }
+        $Client.GetNewObjectId($($Client.CreateAsync($IdmObject)).Result)
+    }
+}
+#endregion
+
+#region Original module cmdlets
+function Get-IdmServer {
     [string]"http://localhost:25316"
 }
 
@@ -202,3 +418,4 @@ function Remove-IdmObject {
     Invoke-RestMethod -Uri $url -Method Delete
   }
 }
+#endregion
